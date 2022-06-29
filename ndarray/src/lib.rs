@@ -1,11 +1,3 @@
 pub mod proto;
+pub mod naive_async;
 pub use proto::*;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
