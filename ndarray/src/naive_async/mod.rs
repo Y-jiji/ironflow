@@ -6,9 +6,20 @@
  * -tion time will be less than simply compute with a single thread. 
  * ---------------------------------------------------------------------------------------------------- */
 
-pub mod device;
-pub mod add;
-pub mod sub;
-pub mod from_val;
-pub mod from_dev;
-pub mod ord;
+mod device;
+mod add;
+mod sub;
+mod div;
+mod mul;
+mod from_val;
+mod from_dev;
+mod ord;
+
+pub use device::*;
+pub use add::*;
+pub use sub::*;
+pub use div::*;
+pub use mul::*;
+pub use from_val::*;
+pub use from_dev::*;
+pub use ord::*;

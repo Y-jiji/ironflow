@@ -1,29 +1,29 @@
 use super::super::proto::NDArray;
 use super::device::*;
-use std::ops::Sub;
+use std::ops::Div;
 
 use async_std::task::*;
 
 macro_rules! auto_impl {($($tok:ident), *) => {$(
 
-impl Sub for NDArray<$tok, SingleThreadNaive> {
+impl Div for NDArray<$tok, SingleThreadNaive> {
     type Output = JoinHandle<NDArray<$tok, SingleThreadNaive>>;
-    fn sub(self, rhs: Self) -> Self::Output {
+    fn div(self, rhs: Self) -> Self::Output {
         spawn(async move {
             assert!(self.size == rhs.size, "have different size!");
             {let locked_self_data = &mut *self.data.lock().unwrap();
             let locked_rhs_data  = &*rhs.data.lock().unwrap();
             for i in 0..locked_self_data.len() {
-                locked_self_data[i] -= locked_rhs_data[i];
+                locked_self_data[i] /= locked_rhs_data[i];
             }} /* the mutable ref to lhs.data dropped after this scope */
             return self;
         })
     }
 }
 
-impl Sub for &NDArray<$tok, SingleThreadNaive> {
+impl Div for &NDArray<$tok, SingleThreadNaive> {
     type Output = JoinHandle<NDArray<$tok, SingleThreadNaive>>;
-    fn sub(self, rhs: Self) -> Self::Output {
+    fn div(self, rhs: Self) -> Self::Output {
         let lhs = self.deep_clone().unwrap();
         let rhs = rhs.clone();
         spawn(async move {
@@ -31,7 +31,7 @@ impl Sub for &NDArray<$tok, SingleThreadNaive> {
             {let locked_lhs_data = &mut *lhs.data.lock().unwrap();
             let locked_rhs_data  = &*rhs.data.lock().unwrap();
             for i in 0..locked_lhs_data.len() {
-                locked_lhs_data[i] -= locked_rhs_data[i];
+                locked_lhs_data[i] /= locked_rhs_data[i];
             }} /* the mutable ref to lhs.data dropped after this scope */
             return lhs;
         })
@@ -56,45 +56,45 @@ mod tests {
         fn $name() {
             let start = Instant::now();
             let a = NDArray::<$tok, SingleThreadNaive> {
-                size: vec![4, 5, 6, 7, 8, 9, 10, 11],
-                data: Arc::new(Mutex::new(vec![2 as $tok; 4*5*6*7*8*9*10*11])),
+                size: vec![4, 5, 6, 7, 8, 9, 10, 11, 12],
+                data: Arc::new(Mutex::new(vec![2 as $tok; 4*5*6*7*8*9*10*11*12])),
                 device: Arc::new(Mutex::new(SingleThreadNaive)),
                 devptr: (),
                 memptr: (),
             };
             let b = NDArray::<$tok, SingleThreadNaive> {
-                size: vec![4, 5, 6, 7, 8, 9, 10, 11],
-                data: Arc::new(Mutex::new(vec![1 as $tok; 4*5*6*7*8*9*10*11])),
+                size: vec![4, 5, 6, 7, 8, 9, 10, 11, 12],
+                data: Arc::new(Mutex::new(vec![1 as $tok; 4*5*6*7*8*9*10*11*12])),
                 device: Arc::new(Mutex::new(SingleThreadNaive)),
                 devptr: (),
                 memptr: (),
             };
             let c = NDArray::<$tok, SingleThreadNaive> {
-                size: vec![4, 5, 6, 7, 8, 9, 10, 11],
-                data: Arc::new(Mutex::new(vec![1 as $tok; 4*5*6*7*8*9*10*11])),
+                size: vec![4, 5, 6, 7, 8, 9, 10, 11, 12],
+                data: Arc::new(Mutex::new(vec![2 as $tok; 4*5*6*7*8*9*10*11*12])),
                 device: Arc::new(Mutex::new(SingleThreadNaive)),
                 devptr: (),
                 memptr: (),
             };
-            let result = block_on(async { join4(&a-&b, &a-&b, &a-&b, &a-&b).await } );
-            assert!(*result.0.data.lock().unwrap() == *c.data.lock().unwrap(), "2-1!=1");
+            let result = block_on(async { join4(&a/&b, &a/&b, &a/&b, &a/&b).await } );
+            assert!(*result.0.data.lock().unwrap() == *c.data.lock().unwrap(), "2/1!=2");
             let end = Instant::now();
             println!("{:?}", end - start);
         }
     )*}}
 
     auto_impl_tests! {
-        i8, test_sub_i8,
-        i16, test_sub_i16,
-        i32, test_sub_i32,
-        i64, test_sub_i64,
-        i128, test_sub_i128,
-        u8, test_sub_u8,
-        u16, test_sub_u16,
-        u32, test_sub_u32,
-        u64, test_sub_u64,
-        u128, test_sub_u128,
-        f32, test_sub_f32,
-        f64, test_sub_f64
+        i8, test_div_i8,
+        i16, test_div_i16,
+        i32, test_div_i32,
+        i64, test_div_i64,
+        i128, test_div_i128,
+        u8, test_div_u8,
+        u16, test_div_u16,
+        u32, test_div_u32,
+        u64, test_div_u64,
+        u128, test_div_u128,
+        f32, test_div_f32,
+        f64, test_div_f64
     }
 }
