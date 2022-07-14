@@ -3,5 +3,5 @@ mod _ops;
 mod _ops_ext;
 
 pub use _arr::*;
-// pub use _ops::*;
+#[allow(unused_imports)] pub use _ops::*;
 pub use _ops_ext::*;
