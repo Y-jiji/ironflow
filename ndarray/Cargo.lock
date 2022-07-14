@@ -546,6 +546,7 @@ dependencies = [
  "async-std",
  "bindgen",
  "futures",
+ "libc",
 ]
 
 [[package]]
