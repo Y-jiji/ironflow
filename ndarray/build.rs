@@ -9,6 +9,18 @@ use std::collections::{HashMap, HashSet};
 
 use bindgen::callbacks::ParseCallbacks;
 
+
+/* ----------------------------- files compiled with nvcc ----------------------------- */
+
+const CUDA_OPS: &[&'static str] = &[
+    "add", 
+    "mul", 
+    "sub", 
+    "div"
+];
+
+/* ------------------------------------------------------------------------------------ */
+
 #[derive(Debug)]
 struct AddFromPrimitive {
     namemap: HashMap<String, String>,
@@ -110,7 +122,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         ptx_build(
             cu_file_dir, 
             ptx_out_dir,
-            &["add"]
+            CUDA_OPS
         )?;
     }
 

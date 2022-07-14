@@ -1,2 +1,2 @@
 pub mod arr;
-pub mod ops;
+pub mod ops_ext;

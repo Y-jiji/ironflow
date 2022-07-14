@@ -1,4 +1,4 @@
-__global__ void add_f32(
+__global__ void sub_f32(
     const float* x,
     const float* y,
           float* z,
@@ -9,11 +9,11 @@ __global__ void add_f32(
             i < len;
             i += gridDim.x * blockDim.x
     ) {
-        z[i] = x[i] + y[i];
+        z[i] = x[i] - y[i];
     }
 }
 
-__global__ void add_f64(
+__global__ void sub_f64(
     const double* x,
     const double* y,
           double* z,
@@ -24,11 +24,11 @@ __global__ void add_f64(
             i < len;
             i += gridDim.x * blockDim.x
     ) {
-        z[i] = x[i] + y[i];
+        z[i] = x[i] - y[i];
     }
 }
 
-__global__ void add_i32(
+__global__ void sub_i32(
     const int* x,
     const int* y,
           int* z,
@@ -39,11 +39,11 @@ __global__ void add_i32(
             i < len;
             i += gridDim.x * blockDim.x
     ) {
-        z[i] = x[i] + y[i];
+        z[i] = x[i] - y[i];
     }
 }
 
-__global__ void add_i64(
+__global__ void sub_i64(
     const long* x,
     const long* y,
           long* z,
@@ -54,6 +54,6 @@ __global__ void add_i64(
             i < len;
             i += gridDim.x * blockDim.x
     ) {
-        z[i] = x[i] + y[i];
+        z[i] = x[i] - y[i];
     }
 }
