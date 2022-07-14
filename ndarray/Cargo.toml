@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 async-std = "1.12.0"               # Async version of the Rust standard library
 futures = "0.3.21"                 # An implementation of futures and streams featuring zero allocations, composability
+
+[build-dependencies]
+bindgen = "*"                      # generate cuda bindings for this crate

@@ -44,7 +44,7 @@ auto_impl!{ i8, i16, i32, i64, i128, u8, u16, u32, u64, u128, f32, f64 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{NDArray, naive_async::device::SingleThreadNaive};
+    use crate::{NDArray, cpu::device::SingleThreadNaive};
     use std::sync::{Mutex, Arc};
     use std::time::Instant;
     use async_std::task::*;
@@ -59,22 +59,19 @@ mod tests {
                 size: vec![4, 5, 6, 7, 8, 9, 10, 11, 12],
                 data: Arc::new(Mutex::new(vec![2 as $tok; 4*5*6*7*8*9*10*11*12])),
                 device: Arc::new(Mutex::new(SingleThreadNaive)),
-                devptr: (),
-                memptr: (),
+                devptr: Arc::new(Mutex::new(())),
             };
             let b = NDArray::<$tok, SingleThreadNaive> {
                 size: vec![4, 5, 6, 7, 8, 9, 10, 11, 12],
                 data: Arc::new(Mutex::new(vec![1 as $tok; 4*5*6*7*8*9*10*11*12])),
                 device: Arc::new(Mutex::new(SingleThreadNaive)),
-                devptr: (),
-                memptr: (),
+                devptr: Arc::new(Mutex::new(())),
             };
             let c = NDArray::<$tok, SingleThreadNaive> {
                 size: vec![4, 5, 6, 7, 8, 9, 10, 11, 12],
                 data: Arc::new(Mutex::new(vec![2 as $tok; 4*5*6*7*8*9*10*11*12])),
                 device: Arc::new(Mutex::new(SingleThreadNaive)),
-                devptr: (),
-                memptr: (),
+                devptr: Arc::new(Mutex::new(())),
             };
             let result = block_on(async { join4(&a/&b, &a/&b, &a/&b, &a/&b).await } );
             assert!(*result.0.data.lock().unwrap() == *c.data.lock().unwrap(), "2/1!=2");

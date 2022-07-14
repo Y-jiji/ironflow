@@ -7,19 +7,22 @@
  * ---------------------------------------------------------------------------------------------------- */
 
 mod device;
+// most simple ops {+, -, *, /}
 mod add;
 mod sub;
-mod div;
 mod mul;
+mod div;
+// from other devices, from other value types
 mod from_val;
 mod from_dev;
+// order ops {<, >, <=, >=}
 mod ord;
 
 pub use device::*;
 pub use add::*;
 pub use sub::*;
-pub use div::*;
 pub use mul::*;
+pub use div::*;
 pub use from_val::*;
 pub use from_dev::*;
 pub use ord::*;

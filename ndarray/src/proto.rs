@@ -1,11 +1,13 @@
 /* ---------------------------------------------------------------------------------------------------- *
  * public behaviours of different implementations of heterogenous devices
  * ---------------------------------------------------------------------------------------------------- */
+
 use std::sync::{Arc, Mutex, PoisonError, MutexGuard};
+
 /* ---------------------------------------------------------------------------------------------------- *
  * DevPtr : public behaviours of device pointers
  * ---------------------------------------------------------------------------------------------------- */
- pub trait DevPtr {
+pub trait DevPtr {
     /* ---------------------------------------------------------------------------------------------------- *
      * nullptr() -> Self
      * return : a null pointer
@@ -16,7 +18,7 @@ use std::sync::{Arc, Mutex, PoisonError, MutexGuard};
 /* ---------------------------------------------------------------------------------------------------- *
  * MemPtr : public behaviours of host memory pointers
  * ---------------------------------------------------------------------------------------------------- */
- pub trait MemPtr where 
+pub trait MemPtr where 
      Self : Sized {
     /* ---------------------------------------------------------------------------------------------------- *
      * nullptr() -> Self
@@ -31,7 +33,7 @@ use std::sync::{Arc, Mutex, PoisonError, MutexGuard};
  * -erface for memory management, and does nothing about unifying computational things. 
  * ---------------------------------------------------------------------------------------------------- */
 pub trait Device where
-    Self         : Sized, 
+    Self         : Sized + Clone,
     Self::DevPtr : DevPtr,
     Self::MemPtr : MemPtr {
 
@@ -82,31 +84,48 @@ pub trait Device where
 }
 
 #[derive(Clone, Debug)]
+pub struct ExchangeBuff {
+}
+
+#[derive(Clone, Debug)]
 pub struct NDArray<ValT, DevT> where
     ValT: Clone,
     DevT: Device {
     /*-------------------------------- things about host memory --------------------------------*/
     pub size : Vec<usize>,             // size, namely shape
     pub data : Arc<Mutex<Vec<ValT>>>,  // flattened data of this tensor (may outlive this struct)
-    pub memptr : DevT::MemPtr,         // binded memory pointer to self.data's inner bytes
     /*------------------------------------------------------------------------------------------*/
 
     /*------------------------------- things about device memory -------------------------------*/
-    pub device : Arc<Mutex<DevT>>,     // binded device/computation stream, shared
-    pub devptr : DevT::DevPtr,         // binded device pointer, uniquely owned by one ndarray
+    pub device : Arc<Mutex<DevT>>,                 // binded computation backend, shared between many ndarrays
+    pub devptr : Arc<Mutex<DevT::DevPtr>>,         // binded device pointer, uniquely owned by one ndarray
     /*------------------------------------------------------------------------------------------*/
 }
 
-impl<ValT, DevT> NDArray<ValT, DevT> where
+unsafe impl<ValT, DevT>
+Send for NDArray<ValT, DevT> where
+    ValT: Clone,
+    DevT: Device {
+    /* ---------------------------------------------------------------------------------------------------- *
+     * it is ok to impl Send blindly, since devptr is unique and other things are Send
+     * size : just copy, ok
+     * data : pointer, the value pointed is pinned, ok
+     * memptr: pointer, temporary, ok
+     * device: pointer, the value pointed is pinned, ok
+     * devptr: pointer, the value pointed is pinned, ok
+     * ---------------------------------------------------------------------------------------------------- */
+}
+
+impl<ValT, DevT> 
+NDArray<ValT, DevT> where
     ValT: Clone,
     DevT: Device {
     pub fn deep_clone(&self) -> Result<Self, PoisonError<MutexGuard<Vec<ValT>>>> {match self.data.lock() {
-        Ok(lock) => Ok(Self { 
+        Ok(lock) => Ok(Self {
             size: self.size.clone(), 
             data: Arc::new(Mutex::new((*lock).clone())), /* the most important thing happens here */
             device: self.device.clone(),
-            devptr: DevT::DevPtr::nullptr(),
-            memptr: DevT::MemPtr::from_vec(&*lock),
+            devptr: Arc::new(Mutex::new(DevT::DevPtr::nullptr())),
         }),
         Err(e) => Err(e)
     }}
