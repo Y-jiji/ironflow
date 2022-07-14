@@ -37,7 +37,7 @@ Cuda bindings are generated with bindgen from CUDA Toolkit 11.3, see details in 
 
 # A typical device implmentation
 
-As mentioned before, the 
+Remember the `_` prefix flattens files/directories. 
 
 ```
 {device name}
@@ -54,5 +54,18 @@ As mentioned before, the
                |_______ _transpose.rs
                |_______ _einsum.rs
                |_______ _cumsum.rs
+               |_______ ...
+               |_______ mod.rs
 ```
 
+# Roadmap
+
+- implement cpu_unistream
+- implement cuda_unistream
+    - implement single device memory management
+    - implement single device stream computing
+    - (maybe turn to `ironflow/tensor` a `ironflow/nn` for one or two months)
+- implement cuda_multistream
+    - implement multi-device memory management
+    - implement multi-stream computing
+- implement simd_unistream (with mkl library or some other stuff)
