@@ -66,6 +66,9 @@ Remember the `_` prefix flattens files/directories.
     - implement single device stream computing
     - (maybe turn to `ironflow/tensor` a `ironflow/nn` for one or two months)
 - implement cuda_multistream
-    - implement multi-device memory management
+    - implement multi-stream memory management
     - implement multi-stream computing
+- implement cuda_multidevice
+    - implement multi-physical gpu memory manangement
+    - use multi-stream computing in different gpu contexts
 - implement simd_unistream (with mkl library or some other stuff)

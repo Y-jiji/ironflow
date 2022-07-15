@@ -17,7 +17,7 @@ __global__ void div_f64(
     const double* x,
     const double* y,
           double* z,
-          int    len
+          int     len
 ) {
     for (
         int i = blockDim.x * blockIdx.x + threadIdx.x; 

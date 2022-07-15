@@ -11,7 +11,6 @@ macro_rules! ArcMutexNew {($x: expr) => { Arc::new(Mutex::new($x)) };}
  */
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct NDArray<ValT, DevT>
 where ValT: Clone + Sized, 
       DevT: Device + Clone,

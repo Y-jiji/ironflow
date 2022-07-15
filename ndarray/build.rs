@@ -1,6 +1,6 @@
 ﻿extern crate bindgen;
 
-use std::env;
+use std::{env, process};
 use std::error::Error;
 use std::fs::read_to_string;
 use std::path::PathBuf;
@@ -8,18 +8,6 @@ use std::io::Write;
 use std::collections::{HashMap, HashSet};
 
 use bindgen::callbacks::ParseCallbacks;
-
-
-/* ----------------------------- files compiled with nvcc ----------------------------- */
-
-const CUDA_OPS: &[&'static str] = &[
-    "add", 
-    "mul", 
-    "sub", 
-    "div"
-];
-
-/* ------------------------------------------------------------------------------------ */
 
 #[derive(Debug)]
 struct AddFromPrimitive {
@@ -101,30 +89,36 @@ fn cuda_build(
 
 fn ptx_build (
     source_dir: PathBuf,
-    target_dir: PathBuf,
-    cu_file_name_list: &[&str],
+    target_file: PathBuf,
 ) -> Result<(), Box<dyn Error>> {
-    for cu_file_name in cu_file_name_list {
-        std::process::Command::new("nvcc")
-            .arg(source_dir.join(cu_file_name.to_string() + ".cu"))
-            .arg("-o").arg(target_dir.join(cu_file_name.to_string() + ".ptx"))
-            .arg("--ptx")
-            .spawn()?;
+    let cu_fn_all = PathBuf::from(env::var("OUT_DIR")?)
+        .join("ops.cu");
+    let mut cu_fn_file_all = std::fs::OpenOptions::new()
+        .append(true).create(true).write(true)
+        .open(cu_fn_all.clone())?;
+    let source_dir_list = std::fs::read_dir(source_dir.clone())?;
+    for cu_fn_file in source_dir_list.into_iter() {
+        let cu_fn_file = cu_fn_file?.path();
+        println!("{:?}", cu_fn_file);
+        std::io::copy(&mut std::fs::OpenOptions::new()
+            .read(true).open(cu_fn_file)?, &mut cu_fn_file_all)?;
     }
+    drop(cu_fn_file_all);
+    process::Command::new("nvcc")
+        .arg(cu_fn_all.clone()).arg("-o").arg(target_file.as_os_str()).arg("--ptx")
+        .spawn()?.wait()?;
+    std::fs::remove_file(cu_fn_all)?;
     Ok(())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
 
-    let ptx_out_dir = PathBuf::from(env::var("OUT_DIR")? + "/ptx");
     let cu_file_dir = PathBuf::from(env::current_dir()?).join("cusrc");
-    if std::fs::create_dir(&ptx_out_dir).is_ok() {
-        ptx_build(
-            cu_file_dir, 
-            ptx_out_dir,
-            CUDA_OPS
-        )?;
-    }
+    let ptx_out_file = PathBuf::from(env::var("OUT_DIR")?).join("ops.ptx");
+    ptx_build(
+        cu_file_dir, 
+        ptx_out_file,
+    )?;
 
     println!("cargo:rerun-if-env-changed=CUDA_LIBRARY_PATH");
     println!("cargo:rerun-if-env-changed=CUDA_INCLUDE_PATH");

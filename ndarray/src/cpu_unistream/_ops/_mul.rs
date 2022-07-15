@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::Mul;
 use super::*;
 
 use crate::async_rt::task::JoinHandle;
@@ -6,11 +6,11 @@ use crate::async_rt::task::JoinHandle;
 type Err = 
 <CpuUniStream as Device>::Err;
 
-macro_rules! impl_add_for_types {($($t: ty), *) => {$(
+macro_rules! impl_mul_for_types {($($t: ty), *) => {$(
 
-impl Add for NDArray<$t, CpuUniStream> {
+impl Mul for NDArray<$t, CpuUniStream> {
     type Output = JoinHandle<Result<Self, Err>>;
-    fn add(
+    fn mul(
         self, 
         rhs: Self,
     ) -> Self::Output {aspawn! {{
@@ -25,7 +25,7 @@ impl Add for NDArray<$t, CpuUniStream> {
         let step = std::mem::size_of::<$t>() as isize;
         let size = unsafe { lbuff.upper.offset_from(lbuff.lower) / step };
         for x in 0..size {unsafe {
-            *(lbuff.lower.offset(x*step) as *mut $t) += 
+            *(lbuff.lower.offset(x*step) as *mut $t) *= 
             *(rbuff.lower.offset(x*step) as *mut $t); 
         }}} // drop lbuff here
         Ok(out)
@@ -34,4 +34,4 @@ impl Add for NDArray<$t, CpuUniStream> {
 
 )*};}
 
-impl_add_for_types!{ i32, i64, f32, f64 }
+impl_mul_for_types!{ i32, i64, f32, f64 }

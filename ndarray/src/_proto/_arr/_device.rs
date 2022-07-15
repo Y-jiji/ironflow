@@ -2,54 +2,58 @@ use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 use std::marker::{Send, Sync};
 
+pub(crate) 
 type Ptr = *mut std::ffi::c_void;
 
-/* -------------------------------------------------------------------------------- *
- * Tips: 
- * Device is always wrapped in Arc Mutex, thus playing with evil things will not
- * do any harm in async code, since the coroutine aquired the lock will not be
- * suspended, making the device operations always atomic
- * -------------------------------------------------------------------------------- */
+/// ----------------------------------------------------------------------------------- ///
+///     Tips: 
+///     Device is always wrapped in Arc Mutex, thus playing with evil things will not
+///     do any harm in async code, since the coroutine aquired the lock will not be
+///     suspended, making the device operations always atomic
+/// ----------------------------------------------------------------------------------- ///
 pub trait Device 
 where Self: Send + Clone + Debug, 
       Self::Err: Debug + Clone, 
 {
+/// ------------------------------------------------------------------------------------ ///
+///     Device specific error
+/// ------------------------------------------------------------------------------------ ///
     type Err;
-    /** --------------------------------------------------------------------------- *
-     *  unified call of memcpy
-     ** --------------------------------------------------------------------------- */
+/// ------------------------------------------------------------------------------------ ///
+///     unified call of memcpy
+/// ------------------------------------------------------------------------------------ ///
     fn memcpy(
         &self,
         dst: Ptr, dstnum: usize,
         src: Ptr, srcnum: usize,
         len: usize,
     ) -> Result<(), Self::Err>;
-    /** --------------------------------------------------------------------------- *
-     *  unified call of memset
-     *  set all 1 bits or all 1bits
-     ** --------------------------------------------------------------------------- */
+/// ------------------------------------------------------------------------------------ ///
+///     unified call of memset
+///     set all 1 bits or all 1bits
+/// ------------------------------------------------------------------------------------ ///
     fn memset(
         &self,
         dst: Ptr, dstnum: usize,
         len: usize, _0: bool,
     ) -> Result<(), Self::Err>;
-    /** --------------------------------------------------------------------------- *
-     *  change internal states of this device to occupy this piece of memory
-     *  get a piece of memory as (lower, upper, devnum)
-     ** --------------------------------------------------------------------------- */
+/// ------------------------------------------------------------------------------------ ///
+///     change internal states of this device to occupy this piece of memory
+///     get a piece of memory as (lower, upper, devnum)
+/// ------------------------------------------------------------------------------------ ///
     fn new_buff(
         &mut self,
         len: usize,
     ) -> Result<(Ptr, Ptr, usize), Self::Err>;
-    /** --------------------------------------------------------------------------- *
-     *  create a new Err(Self::Err)
-     ** --------------------------------------------------------------------------- */
+/// ------------------------------------------------------------------------------------ ///
+///     create a new Err(Self::Err)
+/// ------------------------------------------------------------------------------------ ///
     fn new_err(
         msg: &str
     ) -> Result<(), Self::Err>;
-    /** --------------------------------------------------------------------------- *
-     *  change internal states of this device to free this piece of memory
-     ** --------------------------------------------------------------------------- */
+/// ------------------------------------------------------------------------------------ ///
+///     change internal states of this device to free this piece of memory
+/// ------------------------------------------------------------------------------------ ///
     fn del_buff(
         &mut self,
         lower: Ptr,

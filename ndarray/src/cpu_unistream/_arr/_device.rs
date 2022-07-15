@@ -1,17 +1,15 @@
 use crate::*;
 
 #[derive(Debug, Clone)]
-pub struct CPUUniStream;
-
-type Ptr = *mut std::ffi::c_void;
+pub struct CpuUniStream;
 
 impl Device 
-for CPUUniStream {
+for CpuUniStream {
     type Err = String;
     fn new_err(
         msg: &str
     ) -> Result<(), Self::Err> {
-        Err(String::from(msg))    
+        Err(String::from(msg))
     }
     fn memcpy(
         &self,

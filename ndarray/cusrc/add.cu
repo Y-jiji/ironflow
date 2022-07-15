@@ -1,7 +1,7 @@
 __global__ void add_f32(
-    const float* x,
-    const float* y,
-          float* z,
+    const float*   x,
+    const float*   y,
+          float*   z,
           int    len
 ) {
     for (
@@ -14,10 +14,10 @@ __global__ void add_f32(
 }
 
 __global__ void add_f64(
-    const double* x,
-    const double* y,
-          double* z,
-          int    len
+    const double*   x,
+    const double*   y,
+          double*   z,
+          int     len
 ) {
     for (
         int i = blockDim.x * blockIdx.x + threadIdx.x; 
@@ -29,9 +29,9 @@ __global__ void add_f64(
 }
 
 __global__ void add_i32(
-    const int* x,
-    const int* y,
-          int* z,
+    const int*   x,
+    const int*   y,
+          int*   z,
           int  len
 ) {
     for (
@@ -44,9 +44,9 @@ __global__ void add_i32(
 }
 
 __global__ void add_i64(
-    const long* x,
-    const long* y,
-          long* z,
+    const long*   x,
+    const long*   y,
+          long*   z,
           int   len
 ) {
     for (

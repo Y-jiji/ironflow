@@ -1,0 +1,11 @@
+extern "C" __global__ void add(
+    const int* x, 
+    const int* y, 
+    int* out, 
+    int count
+) {
+    for (int i = blockIdx.x * blockDim.x + threadIdx.x; 
+             i < count; i += blockDim.x * gridDim.x) {
+        out[i] = x[i] + y[i];
+    }
+}
