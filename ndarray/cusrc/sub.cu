@@ -1,3 +1,4 @@
+extern "C"
 __global__ void sub_f32(
     const float* x,
     const float* y,
@@ -13,6 +14,7 @@ __global__ void sub_f32(
     }
 }
 
+extern "C"
 __global__ void sub_f64(
     const double* x,
     const double* y,
@@ -28,6 +30,7 @@ __global__ void sub_f64(
     }
 }
 
+extern "C"
 __global__ void sub_i32(
     const int* x,
     const int* y,
@@ -43,6 +46,7 @@ __global__ void sub_i32(
     }
 }
 
+extern "C"
 __global__ void sub_i64(
     const long* x,
     const long* y,

@@ -1,3 +1,4 @@
+extern "C"
 __global__ void extdot_f32(
     const float*     x,
     const float*     y,
@@ -7,9 +8,11 @@ __global__ void extdot_f32(
           int     lenk
 ) {
     for (
-        int i = blockIdx.x * blockDim.x + threadIdx.x; 
-            i < leni; 
-            i += blockDim.x * gridDim.x
+        int i = (blockIdx.x * blockDim.x + threadIdx.x) * 
+                (blockDim.z * gridDim.z)                +
+                (blockIdx.z * blockDim.z + threadIdx.z) ; 
+            i < leni;
+            i += blockDim.x * gridDim.x * blockDim.z * gridDim.z
     ) {
     for (
         int j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -28,6 +31,7 @@ __global__ void extdot_f32(
     }}
 }
 
+extern "C"
 __global__ void extdot_f64(
     const double*    x,
     const double*    y,
@@ -37,9 +41,11 @@ __global__ void extdot_f64(
           int     lenk
 ) {
     for (
-        int i = blockIdx.x * blockDim.x + threadIdx.x; 
-            i < leni; 
-            i += blockDim.x * gridDim.x
+        int i = (blockIdx.x * blockDim.x + threadIdx.x) * 
+                (blockDim.z * gridDim.z)                +
+                (blockIdx.z * blockDim.z + threadIdx.z) ; 
+            i < leni;
+            i += blockDim.x * gridDim.x * blockDim.z * gridDim.z
     ) {
     for (
         int j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -58,6 +64,7 @@ __global__ void extdot_f64(
     }}
 }
 
+extern "C"
 __global__ void extdot_i32(
     const int*       x,
     const int*       y,
@@ -67,9 +74,11 @@ __global__ void extdot_i32(
           int     lenk
 ) {
     for (
-        int i = blockIdx.x * blockDim.x + threadIdx.x; 
-            i < leni; 
-            i += blockDim.x * gridDim.x
+        int i = (blockIdx.x * blockDim.x + threadIdx.x) * 
+                (blockDim.z * gridDim.z)                +
+                (blockIdx.z * blockDim.z + threadIdx.z) ; 
+            i < leni;
+            i += blockDim.x * gridDim.x * blockDim.z * gridDim.z
     ) {
     for (
         int j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -88,6 +97,7 @@ __global__ void extdot_i32(
     }}
 }
 
+extern "C"
 __global__ void extdot_i64(
     const long*      x,
     const long*      y,
@@ -97,9 +107,11 @@ __global__ void extdot_i64(
           int     lenk
 ) {
     for (
-        int i = blockIdx.x * blockDim.x + threadIdx.x; 
-            i < leni; 
-            i += blockDim.x * gridDim.x
+        int i = (blockIdx.x * blockDim.x + threadIdx.x) * 
+                (blockDim.z * gridDim.z)                +
+                (blockIdx.z * blockDim.z + threadIdx.z) ; 
+            i < leni;
+            i += blockDim.x * gridDim.x * blockDim.z * gridDim.z
     ) {
     for (
         int j = blockIdx.y * blockDim.y + threadIdx.y;
