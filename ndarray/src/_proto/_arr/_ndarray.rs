@@ -1,17 +1,17 @@
 use std::marker::PhantomData;
-use std::sync::{Arc, RwLock};
-use crate::Buffer;
+use crate::*;
 
-pub
-struct NDArray<ValT, DevT> {
+struct NDArray<ValT, DevT>
+where DevT: Device 
+{
     /// marker of value type
     pub(crate)
     _val : PhantomData<ValT>,
     /// buffer might be actively modified by device
-    pub(crate) 
-    buff : Arc<RwLock<Buffer<DevT>>>, 
+    pub(crate)
+    buff : DevBuf<DevT>, 
     /// meta data about shape
-    pub(crate) 
+    pub(crate)
     size : Vec<usize>,
 }
 

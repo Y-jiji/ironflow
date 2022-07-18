@@ -1,131 +1,88 @@
-extern "C"
-__global__ void extdot_f32(
-    const float*     x,
-    const float*     y,
-          float*     z,
-          int     leni,
-          int     lenj,
-          int     lenk
-) {
-    for (
-        int i = (blockIdx.x * blockDim.x + threadIdx.x) * 
-                (blockDim.z * gridDim.z)                +
-                (blockIdx.z * blockDim.z + threadIdx.z) ; 
-            i < leni;
-            i += blockDim.x * gridDim.x * blockDim.z * gridDim.z
-    ) {
-    for (
-        int j = blockIdx.y * blockDim.y + threadIdx.y;
-            j < lenj; 
-            j += blockDim.y * gridDim.y
-    ) {
-        float delta_zij = 0;
-    for (
-        int k = 0; 
-            k < lenk;
-            k ++
-    ) {
-        delta_zij += x[i*lenk + k] * y[j*lenk + k];
-    }
-        z[i*lenj + j] += delta_zij;
-    }}
+#define ISTEP (blockDim.x * gridDim.x)
+#define JSTEP (blockDim.y * gridDim.y * blockDim.z * gridDim.z)
+#define KSTEP (1)
+
+#define ISTART (blockDim.x * blockIdx.x + threadIdx.x)
+#define JSTART ((blockDim.y * blockIdx.y + threadIdx.y) * (blockDim.z * gridDim.z) + (blockDim.z * blockIdx.z + threadIdx.z))
+#define KSTART (0)
+
+#define IMPL_EXTDOT(NAME, DATATYPE)                  \
+extern "C"                                           \
+__global__ void NAME(                                \
+    const DATATYPE*  x,                              \
+    const DATATYPE*  y,                              \
+          DATATYPE*  z,                              \
+          int     leni,                              \
+          int     lenj,                              \
+          int     lenk,                              \
+    void* const  lower,                              \
+    void* const  upper                               \
+) {                                                  \
+	DATATYPE delta = 0;                              \
+	int i = ISTART, j = JSTART, k = KSTART;          \
+	if      (&x[leni * lenk] >= upper) goto XCROSS;  \
+	else if (&y[lenj * lenk] >= upper) goto YCROSS;  \
+	else if (&z[leni * lenj] >= upper) goto ZCROSS;  \
+	else                               goto FINAL;   \
+XCROSS:                                              \
+	for (; i < leni; i += ISTEP)                     \
+	for (; j < lenj; j += JSTEP) {                   \
+		for (; k < lenk; ++k) {                      \
+			if (&x[i*lenk + k + 1] > upper) {        \
+                x = (DATATYPE*) lower;               \
+                goto XFINAL;                         \
+            }                                        \
+			delta += x[i*lenk + k] * y[j*lenk + k];  \
+		}                                            \
+		z[i*lenj + j] = delta;                       \
+	}                                                \
+YCROSS:                                              \
+	for (; i < leni; i += ISTEP)                     \
+	for (; j < lenj; j += JSTEP) {                   \
+		for (; k < lenk; ++k) {                      \
+			if (&y[i*lenk + k + 1] > upper) {        \
+                y = (DATATYPE*) lower;               \
+                goto YFINAL;                         \
+            }                                        \
+			delta += x[i*lenk + k] * y[j*lenk + k];  \
+		}                                            \
+		z[i*lenj + j] = delta;                       \
+	}                                                \
+ZCROSS:                                              \
+	for (; i < leni; i += ISTEP)                     \
+	for (; j < lenj; j += JSTEP) {                   \
+		if (&z[i*lenj + j + 1] > upper) {            \
+		    z = (DATATYPE*) lower;                   \
+            goto ZFINAL;                             \
+        }                                            \
+		for (; k < lenk; ++k)                        \
+			delta += x[i*lenk + k] * y[j*lenk + k];  \
+		z[i*lenj + j] = delta;                       \
+	}                                                \
+FINAL:                                               \
+	for (; i < leni; i += ISTEP)                     \
+	for (; j < lenj; j += JSTEP) {                   \
+		ZFINAL:                                      \
+		for (; k < lenk; ++k) {                      \
+			XFINAL: YFINAL:                          \
+			delta += x[i*lenk + k] * y[j*lenk + k];  \
+		}                                            \
+		z[i*lenj + j] = delta;                       \
+	}                                                \
 }
 
-extern "C"
-__global__ void extdot_f64(
-    const double*    x,
-    const double*    y,
-          double*    z,
-          int     leni,
-          int     lenj,
-          int     lenk
-) {
-    for (
-        int i = (blockIdx.x * blockDim.x + threadIdx.x) * 
-                (blockDim.z * gridDim.z)                +
-                (blockIdx.z * blockDim.z + threadIdx.z) ; 
-            i < leni;
-            i += blockDim.x * gridDim.x * blockDim.z * gridDim.z
-    ) {
-    for (
-        int j = blockIdx.y * blockDim.y + threadIdx.y;
-            j < lenj; 
-            j += blockDim.y * gridDim.y
-    ) {
-        double delta_zij = 0;
-    for (
-        int k = 0; 
-            k < lenk;
-            k ++
-    ) {
-        delta_zij += x[i*lenk + k] * y[j*lenk + k];
-    }
-        z[i*lenj + j] += delta_zij;
-    }}
-}
+IMPL_EXTDOT(extdot_f32, float);
+IMPL_EXTDOT(extdot_f64, double);
+IMPL_EXTDOT(extdot_i32, int);
+IMPL_EXTDOT(extdot_i64, long long);
 
-extern "C"
-__global__ void extdot_i32(
-    const int*       x,
-    const int*       y,
-          int*       z,
-          int     leni,
-          int     lenj,
-          int     lenk
-) {
-    for (
-        int i = (blockIdx.x * blockDim.x + threadIdx.x) * 
-                (blockDim.z * gridDim.z)                +
-                (blockIdx.z * blockDim.z + threadIdx.z) ; 
-            i < leni;
-            i += blockDim.x * gridDim.x * blockDim.z * gridDim.z
-    ) {
-    for (
-        int j = blockIdx.y * blockDim.y + threadIdx.y;
-            j < lenj; 
-            j += blockDim.y * gridDim.y
-    ) {
-        int delta_zij = 0;
-    for (
-        int k = 0; 
-            k < lenk;
-            k ++
-    ) {
-        delta_zij += x[i*lenk + k] * y[j*lenk + k];
-    }
-        z[i*lenj + j] += delta_zij;
-    }}
-}
+#undef ISTEP
+#undef JSTEP
+#undef KSTEP
 
-extern "C"
-__global__ void extdot_i64(
-    const long*      x,
-    const long*      y,
-          long*      z,
-          int     leni,
-          int     lenj,
-          int     lenk
-) {
-    for (
-        int i = (blockIdx.x * blockDim.x + threadIdx.x) * 
-                (blockDim.z * gridDim.z)                +
-                (blockIdx.z * blockDim.z + threadIdx.z) ; 
-            i < leni;
-            i += blockDim.x * gridDim.x * blockDim.z * gridDim.z
-    ) {
-    for (
-        int j = blockIdx.y * blockDim.y + threadIdx.y;
-            j < lenj; 
-            j += blockDim.y * gridDim.y
-    ) {
-        long delta_zij = 0;
-    for (
-        int k = 0; 
-            k < lenk;
-            k ++
-    ) {
-        delta_zij += x[i*lenk + k] * y[j*lenk + k];
-    }
-        z[i*lenj + j] += delta_zij;
-    }}
-}
+#undef ISTART
+#undef JSTART
+#undef KSTART
+
+#undef IMPL_EXTDOT(NAME, DATATYPE)
+
